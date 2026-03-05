@@ -49,7 +49,7 @@ export const Footer = () => (
             </div>
         </footer>
         <div className="copyright text-center">
-            From ®4GeeksAcademy by Andrea, Vanessa, Ruben and Judelin
+            From ® 2024 HiDoc. All rights reserved.
         </div>
     </>
 );
