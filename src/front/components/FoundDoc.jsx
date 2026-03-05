@@ -6,14 +6,26 @@ export const FoundDoc = () => {
     const { store, dispatch } = useGlobalReducer();
     const [loading, setLoading] = useState(false);
 
-    const specialties = ["Cardiology", "Dermatology", "General Practice", "Psychology", "Orthopedics", "Neurology", "Gastroenterology"];
+    // MODIFICACIÓN: Los 'value' deben coincidir EXACTAMENTE con tu SpecialtyType de Python
+    const specialties = [
+        { label: "Cardiology", value: "CARDIOLOGY" },
+        { label: "Dermatology", value: "DERMATOLOGY" },
+        { label: "Pediatrics", value: "PEDIATRICS" },
+        { label: "General Practice", value: "GENERAL_PRACTICE" },
+        { label: "Neurology", value: "NEUROLOGY" },
+        { label: "Psychology", value: "PSYCHOLOGY" },
+        { label: "Orthopedics", value: "ORTHOPEDICS" },
+        { label: "Gastroenterology", value: "GASTROENTEROLOGY" }
+    ];
 
     const fetchDoctors = async (specialty = null) => {
         setLoading(true);
         try {
             const backendUrl = import.meta.env.VITE_BACKEND_URL;
+            
+            // Usamos tu lógica original de endpoints
             const url = specialty
-                ? `${backendUrl}/api/doctors?specialty=${encodeURIComponent(specialty)}`
+                ? `${backendUrl}/api/doctors?specialty=${specialty}`
                 : `${backendUrl}/api/doctor`;
 
             const response = await fetch(url);
@@ -25,8 +37,7 @@ export const FoundDoc = () => {
         } catch (error) {
             console.error("Error fetching doctors:", error);
         } finally {
-            // Un pequeño delay artificial mejora la percepción de carga (UX)
-            setTimeout(() => setLoading(false), 400);
+            setLoading(false);
         }
     };
 
@@ -36,103 +47,55 @@ export const FoundDoc = () => {
 
     return (
         <div className="container py-4 py-md-5">
-            {/* Header: Título y Selector compacto en PC */}
             <div className="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 gap-3">
                 <div className="text-center text-md-start">
                     <h3 className="fw-bold mb-0" style={{ color: "#092F64" }}>Top Rated Doctors</h3>
-                    <p className="text-muted small mb-0 d-none d-md-block">Book with our most trusted specialists</p>
+                    <p className="text-muted small mb-0 d-none d-md-block">Verified specialists in our network</p>
                 </div>
                 
-                {/* Selector: w-100 en móvil, limitado a 300px en PC */}
                 <div className="w-100" style={{ maxWidth: "300px" }}>
                     <select
                         className="form-select border-0 shadow-sm bg-white py-2 px-3"
-                        style={{ 
-                            borderRadius: "12px", 
-                            color: "#1A5799", 
-                            cursor: "pointer",
-                            fontWeight: "500",
-                            fontSize: "0.95rem"
-                        }}
+                        style={{ borderRadius: "12px", color: "#1A5799", fontWeight: "600" }}
                         onChange={(e) => {
                             const val = e.target.value;
                             fetchDoctors(val === "All" ? null : val);
                         }}
                     >
-                        <option value="All">✨ All Specialties</option>
+                        <option value="All"> All Specialties</option>
                         {specialties.map(spec => (
-                            <option key={spec} value={spec}>{spec}</option>
+                            <option key={spec.value} value={spec.value}>{spec.label}</option>
                         ))}
                     </select>
                 </div>
             </div>
 
             {loading ? (
-                /* Estado de carga: Skeletons elegantes */
-                <div className="d-flex gap-3 overflow-hidden pb-4">
-                    {[1, 2, 3, 4].map(i => (
-                        <div key={i} className="bg-light rounded-4 animate-pulse" 
-                             style={{ minWidth: "280px", height: "350px", border: "1px solid #eee" }}></div>
-                    ))}
+                <div className="text-center py-5">
+                    <div className="spinner-border text-primary" role="status"></div>
                 </div>
             ) : (
-                /* Contenedor de Scroll Horizontal con Snap */
-                <div 
-                    className="d-flex overflow-auto pb-4 px-1 custom-scrollbar" 
-                    style={{ 
-                        gap: "1.25rem", 
-                        scrollSnapType: "x mandatory",
-                        WebkitOverflowScrolling: "touch" 
-                    }}
-                >
+                <div className="d-flex overflow-auto pb-4 custom-scrollbar" 
+                     style={{ gap: "1.25rem", scrollSnapType: "x mandatory", WebkitOverflowScrolling: "touch" }}>
                     {store.doctors && store.doctors.length > 0 ? (
                         store.doctors.map((doctor, index) => (
-                            <div 
-                                key={doctor.id || index} 
-                                className="animate__animated animate__fadeIn"
-                                style={{ 
-                                    scrollSnapAlign: "start",
-                                    flex: "0 0 auto", 
-                                    width: "285px",
-                                    animationDelay: `${index * 0.1}s`
-                                }}
-                            >
+                            <div key={doctor.id || index} style={{ scrollSnapAlign: "start", flex: "0 0 auto", width: "285px" }}>
                                 <DoctorCard doctor={doctor} />
                             </div>
                         ))
                     ) : (
-                        <div className="alert alert-info w-100 rounded-4 border-0 shadow-sm py-4 text-center">
-                            <i className="fa-solid fa-circle-info me-2"></i>
-                            No doctors found for this specialty yet.
+                        <div className="alert alert-info w-100 rounded-4 shadow-sm border-0 py-4 text-center">
+                            <i className="fa-solid fa-user-md me-2"></i>
+                            No doctors found for this specialty.
                         </div>
                     )}
                 </div>
             )}
 
-            {/* Estilos locales para el componente */}
             <style>{`
-                .custom-scrollbar::-webkit-scrollbar {
-                    height: 6px;
-                }
-                .custom-scrollbar::-webkit-scrollbar-track {
-                    background: #f1f1f1;
-                    border-radius: 10px;
-                }
-                .custom-scrollbar::-webkit-scrollbar-thumb {
-                    background: #d1e9ff;
-                    border-radius: 10px;
-                }
-                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                    background: #1a5799;
-                }
-                .animate-pulse {
-                    animation: pulse 1.8s infinite ease-in-out;
-                }
-                @keyframes pulse {
-                    0% { background-color: #f8f9fa; }
-                    50% { background-color: #e9ecef; }
-                    100% { background-color: #f8f9fa; }
-                }
+                .custom-scrollbar::-webkit-scrollbar { height: 6px; }
+                .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+                .custom-scrollbar::-webkit-scrollbar-thumb { background: #D1E9FF; border-radius: 10px; }
             `}</style>
         </div>
     );

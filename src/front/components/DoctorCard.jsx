@@ -11,7 +11,6 @@ export const DoctorCard = ({ doctor }) => {
     const [slots, setSlots] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    // MANTENEMOS TU LÓGICA DE BACKEND EXACTAMENTE IGUAL
     useEffect(() => {
         const fetchAvailability = async () => {
             if (!doctor.id) return;
@@ -31,7 +30,6 @@ export const DoctorCard = ({ doctor }) => {
         fetchAvailability();
     }, [doctor.id]);
 
-    // MANTENEMOS TU LÓGICA DE RESERVA (POST) CON TUS VARIABLES
     const handleBooking = async (slot) => {
         const result = await Swal.fire({
             title: 'Confirm Appointment?',
@@ -53,7 +51,7 @@ export const DoctorCard = ({ doctor }) => {
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                         doctor_id: doctor.id,
-                        patient_id: store.user?.id, // Tu lógica de ID de usuario
+                        patient_id: store.user?.id, 
                         hour: slot.hour,
                         day: slot.day
                     })
@@ -82,7 +80,6 @@ export const DoctorCard = ({ doctor }) => {
              style={{ borderRadius: "20px", transition: "all 0.3s ease", overflow: "hidden" }}>
             
             <div className="card-body p-4 d-flex flex-column">
-                {/* Header: Foto y Status */}
                 <div className="d-flex align-items-center mb-4">
                     <div className="position-relative">
                         <img
@@ -103,16 +100,12 @@ export const DoctorCard = ({ doctor }) => {
                         </div>
                     </div>
                 </div>
-
-                {/* Ubicación con estilo Senior */}
                 <div className="mb-4 d-flex align-items-start p-2 rounded-3 bg-light-subtle border border-light">
                     <i className="fa-solid fa-location-dot text-primary mt-1 me-2" style={{ fontSize: "0.9rem" }}></i>
                     <span className="text-muted small text-truncate-2" style={{ lineHeight: "1.4" }}>
                         {doctor.address || "Location not available"}
                     </span>
                 </div>
-
-                {/* Horarios Disponibles */}
                 <div className="mt-auto">
                     <div className="d-flex justify-content-between align-items-center mb-2">
                         <p className="fw-bold mb-0 small text-dark">Next slots:</p>
@@ -137,8 +130,6 @@ export const DoctorCard = ({ doctor }) => {
                             <span className="text-muted small fst-italic py-2">No slots available</span>
                         )}
                     </div>
-                    
-                    {/* Botón Principal con efecto hover */}
                     <button
                         className="btn btn-primary w-100 fw-bold py-2 shadow-sm btn-view-profile"
                         style={{ backgroundColor: "#1A5799", color: "#FFFFFF", borderRadius: "12px", border: "none" }}
@@ -148,8 +139,6 @@ export const DoctorCard = ({ doctor }) => {
                     </button>
                 </div>
             </div>
-
-            {/* CSS SCOPED PARA LA MAGIA SENIOR */}
             <style>{`
                 .card-doctor-senior:hover {
                     transform: translateY(-10px);
