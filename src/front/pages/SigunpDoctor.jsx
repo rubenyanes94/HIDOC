@@ -1,11 +1,10 @@
-import React, { useEffect, useState } from "react"
-import { Await, useNavigate } from "react-router-dom";
-import { Link, useParams } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import useGlobalReducer from "../hooks/useGlobalReducer.jsx";
 import Swal from "sweetalert2";
 
 export const SignupDoctor = () => {
-    const { store, dispatch } = useGlobalReducer()
+    const { store, dispatch } = useGlobalReducer();
     const navigate = useNavigate();
     const [uploading, setUploading] = useState(false);
     const [form, setForm] = useState({
@@ -16,20 +15,19 @@ export const SignupDoctor = () => {
         biography: "",
         picture: "",
         phone: "",
-        address: " ",
-        latitud: " ",
-        longitud: " ",
-        cal_link: " ",
-
-
-    })
+        address: "",
+        latitud: "",
+        longitud: "",
+        cal_link: "",
+    });
 
     const hadleChange = (e) => {
         setForm({ ...form, [e.target.name]: e.target.value });
-    }
+    };
+
     const hadleSpecialty = (value) => {
-        setForm({ ...form, specialties: value })
-    }
+        setForm({ ...form, specialties: value });
+    };
 
     const uploadImagen = async (e) => {
         const files = e.target.files;
@@ -37,7 +35,7 @@ export const SignupDoctor = () => {
 
         const data = new FormData();
         data.append("file", files[0]);
-        data.append("upload_preset", "hidoctor")
+        data.append("upload_preset", "hidoctor");
 
         setUploading(true);
         try {
@@ -48,10 +46,10 @@ export const SignupDoctor = () => {
             const file = await response.json();
             if (file.secure_url) {
                 setForm(prevForm => ({ ...prevForm, picture: file.secure_url }));
-                console.log("URL guardada en estado:", file.secure_url);
             }
         } catch (error) {
             console.error("Error subiendo la imagen", error);
+            Swal.fire("Error", "Could not upload image", "error");
         } finally {
             setUploading(false);
         }
@@ -59,6 +57,11 @@ export const SignupDoctor = () => {
 
     const handleSignupDoctor = async (e) => {
         e.preventDefault();
+        if (!form.specialties) {
+            Swal.fire("Wait!", "Please select a medical specialty", "warning");
+            return;
+        }
+
         try {
             const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/doctor/register`, {
                 method: "POST",
@@ -68,151 +71,148 @@ export const SignupDoctor = () => {
             const data = await response.json();
             if (response.ok) {
                 Swal.fire({
-                    title: "Doctor registered successfully!",
-                    text: "Your account has been created. Please log in to access your dashboard.",
+                    title: "Welcome to the team!",
+                    text: "Your professional account has been created successfully.",
                     icon: "success",
                     confirmButtonText: "Go to Login",
-                    confirmButtonColor: "#035aa6"
+                    confirmButtonColor: "#1A5799"
                 }).then((result) => {
-                    if (result.isConfirmed) {
-                        navigate("/doctor/login");
-                    }
+                    if (result.isConfirmed) navigate("/doctor/login");
                 });
-
             } else {
-                Swal.fire({
-                    title: "Error",
-                    text: data.msg || "There was an issue with your registration.",
-                    icon: "error",
-                    confirmButtonColor: "#d33"
-                });
+                Swal.fire("Error", data.msg || "Registration failed", "error");
             }
         } catch (error) {
-            console.error("Error de conexión:", error);
+            Swal.fire("Connection Error", "Check your internet or server status", "error");
         }
     };
 
     return (
+        <div className="min-vh-100 d-flex align-items-center justify-content-center bg-light p-3" style={{ paddingTop: "100px", paddingBottom: "100px" }}>
+            <div className="container shadow-lg overflow-hidden bg-white" style={{ borderRadius: "28px", maxWidth: "1100px", border: "none" }}>
+                <div className="row g-0 align-items-stretch">
 
-        <div className="vip-background my-5">
-            <div className="fondo-form">
+                    {/* LADO IZQUIERDO: INFORMACIÓN */}
+                    <div className="col-lg-4 d-none d-lg-flex p-0" style={{ background: "linear-gradient(135deg, #092F64 0%, #1A5799 100%)" }}>
+                        <div className="p-5 d-flex flex-column justify-content-center h-100 text-white text-center">
+                            <i className="fa-solid fa-user-doctor display-1 mb-4 opacity-25"></i>
+                            <h2 className="fw-bold mb-4">Professional Registration</h2>
+                            <p className="opacity-75">Join our platform to reach more patients and manage your clinic with digital tools.</p>
 
-                <div className="container d-flex align-items-center justify-content-center" style={{ minHeight: "100vh" }}>
-
-                    <div className="row g-3">
-                        <div className="col-12 text-center text-primary text-success">
-                            <h1 id="titlesigun">Create your account</h1>
-                        </div>
-
-                        <div className="col-12">
-                            <form onSubmit={handleSignupDoctor}>
-                                <div className="mb-3">
-                                    <label htmlFor="name" className="form-label">
-                                        <strong>Name:</strong>
-                                    </label>
-                                    <input type="text" className="form-control" id="name" name="name" onChange={hadleChange} required />
-                                </div>
-                                <div className="mb-3">
-                                    <label htmlFor="email" className="form-label">
-                                        <strong> Email:</strong>
-                                    </label>
-                                    <input type="email" className="form-control" id="email" name="email" onChange={hadleChange} required />
-                                </div>
-                                <div className="mb-3">
-                                    <label htmlFor="password" className="form-label">
-                                        <strong> Password:</strong>
-                                    </label>
-                                    <input type="password" className="form-control" id="password" name="password" onChange={hadleChange} required />
-                                </div>
-                                <div className="mb-3">
-                                    <label htmlFor="name" className="form-label">
-                                        <strong>Specialties:</strong>
-                                    </label>
-                                    <div className="dropdown">
-                                        <button className="btn dropdown-toggle text-light" id="btn-drop" type="button" data-bs-toggle="dropdown" aria-expanded="false" >
-                                            <strong>{form.specialties || "Select a specialty"}</strong>
-                                        </button>
-                                        <ul className="dropdown-menu w-60">
-                                            {[
-                                                { key: "CARDIOLOGY", label: "Cardiology" },
-                                                { key: "DERMATOLOGY", label: "Dermatology" },
-                                                { key: "PSYCHOLOGY", label: "Psychology" },
-                                                { key: "GENERAL_PRACTICE", label: "General Practice" },
-                                                { key: "NEUROLOGY", label: "Neurology" },
-                                                { key: "GASTROENTEROLOGY", label: "Gastroenterology" }
-                                            ].map(({ key, label }) => (
-                                                <li key={key}>
-                                                    <button
-                                                        type="button"
-                                                        className={`dropdown-item ${form.specialties === key ? "active" : ""}`}
-                                                        onClick={() => hadleSpecialty(key)}
-                                                        style={{ cursor: 'pointer' }}>
-                                                        {label}
-                                                    </button>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </div></div>
-
-                                <div className="mb-3">
-                                    <label htmlFor="biography" className="form-label">
-                                        <strong>Biography:</strong>
-                                    </label>
-                                    <label htmlFor="exampleFormControlTextarea1" className="form-label"></label>
-                                    <textarea className="form-control" id="biography" name="biography" value={form.biography} onChange={hadleChange} rows="3"></textarea>
-                                </div>
-                                <div className="mb-3">
-                                    <label htmlFor="picture" className="form-label">
-                                        <strong>Picture:</strong>
-                                    </label><div className="mb-3">
-                                        <input className="form-control" type="file" id="formFile" onChange={uploadImagen} />
-                                        {uploading && <small className="text-warning">Subiendo imagen...</small>}
-                                        {form.picture && <small className="text-success d-block">Imagen lista </small>}
-                                    </div>
-
-                                </div>
-                                <div className="mb-3">
-                                    <label htmlFor="address" className="form-label">
-                                        <strong>Address:</strong>
-                                    </label>
-                                    <input type="text" className="form-control" id="address" name="address" onChange={hadleChange} required />
-                                </div>
-                                <div>
-                                    <label htmlFor="name" className="form-label">
-                                        <strong>Latitud:</strong>
-                                    </label>
-                                    <input type="text" className="form-control" id="latitud" name="latitud" onChange={hadleChange} required />
-                                </div>
-                                <div>
-                                    <label htmlFor="longitud" className="form-label">
-                                        <strong>Longitud:</strong>
-                                    </label>
-                                    <input type="text" className="form-control" id="longitud" name="longitud" onChange={hadleChange} required />
-                                </div>
-
-                                <div>
-                                    <label htmlFor="phone" className="form-label">
-                                        <strong>Phone:</strong>
-                                    </label>
-                                    <input type="text" className="form-control" id="phone" name="phone" onChange={hadleChange} required />
-                                </div>
-                                <div>
-                                    <label htmlFor="cal_link" className="form-label">
-                                        <strong>Calendario link:</strong>
-                                    </label>
-                                    <input type="text" className="form-control" id="cal_link" name="cal_link" onChange={hadleChange} required />
-                                </div>
-                                <div className="d-flex justify-content-center p-2">
-                                    <button type="submit" className="btn text-light" id="btn-drop">Register</button>
-                                </div>
-
-                            </form>
+                            <ul className="list-unstyled text-start mt-4 small">
+                                <li className="mb-2"><i className="fa-solid fa-check-circle text-info me-2"></i> Custom medical profile</li>
+                                <li className="mb-2"><i className="fa-solid fa-check-circle text-info me-2"></i> Digital schedule management</li>
+                                <li className="mb-2"><i className="fa-solid fa-check-circle text-info me-2"></i> Secure patient records</li>
+                            </ul>
                         </div>
                     </div>
+
+                    {/* LADO DERECHO: FORMULARIO */}
+                    <div className="col-lg-8 p-4 p-md-5">
+                        <div className="mb-4">
+                            <h3 className="fw-bold text-dark mb-1">Create Professional Account</h3>
+                            <p className="text-muted small">Fill in the details to set up your medical profile.</p>
+                        </div>
+
+                        <form onSubmit={handleSignupDoctor}>
+                            <div className="row">
+                                {/* Datos Básicos */}
+                                <div className="col-md-6 mb-3">
+                                    <label className="form-label small fw-bold text-muted">FULL NAME</label>
+                                    <input type="text" className="form-control bg-light border-0 py-2 shadow-none" name="name" onChange={hadleChange} required />
+                                </div>
+                                <div className="col-md-6 mb-3">
+                                    <label className="form-label small fw-bold text-muted">WORK EMAIL</label>
+                                    <input type="email" className="form-control bg-light border-0 py-2 shadow-none" name="email" onChange={hadleChange} required />
+                                </div>
+                                <div className="col-md-6 mb-3">
+                                    <label className="form-label small fw-bold text-muted">PASSWORD</label>
+                                    <input type="password" className="form-control bg-light border-0 py-2 shadow-none" name="password" onChange={hadleChange} required />
+                                </div>
+                                <div className="col-md-6 mb-3">
+                                    <label className="form-label small fw-bold text-muted">PHONE NUMBER</label>
+                                    <input type="text" className="form-control bg-light border-0 py-2 shadow-none" name="phone" onChange={hadleChange} required />
+                                </div>
+
+                                {/* Especialidad y Bio */}
+                                <div className="col-md-6 mb-3">
+                                    <label className="form-label small fw-bold text-muted">SPECIALTY</label>
+                                    <select className="form-select bg-light border-0 py-2 shadow-none" onChange={(e) => hadleSpecialty(e.target.value)} required>
+                                        <option value="">Choose specialty...</option>
+                                        <option value="CARDIOLOGY">Cardiology</option>
+                                        <option value="DERMATOLOGY">Dermatology</option>
+                                        <option value="PSYCHOLOGY">Psychology</option>
+                                        <option value="GENERAL_PRACTICE">General Practice</option>
+                                        <option value="NEUROLOGY">Neurology</option>
+                                        <option value="GASTROENTEROLOGY">Gastroenterology</option>
+                                    </select>
+                                </div>
+                                <div className="col-md-6 mb-3">
+                                    <label className="form-label small fw-bold text-muted">PROFESSIONAL PICTURE</label>
+                                    <input className="form-control bg-light border-0 py-2 shadow-none" type="file" onChange={uploadImagen} />
+                                    {uploading && <small className="text-primary animate-pulse">Uploading to Cloudinary...</small>}
+                                    {form.picture && <small className="text-success"><i className="fa-solid fa-circle-check"></i> Image ready</small>}
+                                </div>
+
+                                <div className="col-12 mb-3">
+                                    <label className="form-label small fw-bold text-muted">BIOGRAPHY / CLINICAL FOCUS</label>
+                                    <textarea className="form-control bg-light border-0 shadow-none" name="biography" rows="2" onChange={hadleChange}></textarea>
+                                </div>
+
+                                {/* Ubicación y Agenda */}
+                                <div className="col-12 mb-3">
+                                    <label className="form-label small fw-bold text-muted">CLINIC ADDRESS</label>
+                                    <input type="text" className="form-control bg-light border-0 py-2 shadow-none" name="address" onChange={hadleChange} required />
+                                </div>
+                                <div className="col-md-4 mb-3">
+                                    <label className="form-label small fw-bold text-muted">LATITUDE</label>
+                                    <input type="text" className="form-control bg-light border-0 py-2 shadow-none" name="latitud" onChange={hadleChange} required />
+                                </div>
+                                <div className="col-md-4 mb-3">
+                                    <label className="form-label small fw-bold text-muted">LONGITUDE</label>
+                                    <input type="text" className="form-control bg-light border-0 py-2 shadow-none" name="longitud" onChange={hadleChange} required />
+                                </div>
+                                <div className="col-md-4 mb-3">
+                                    <label className="form-label small fw-bold text-muted">CAL LINK</label>
+                                    <input type="text" className="form-control bg-light border-0 py-2 shadow-none" name="cal_link" onChange={hadleChange} required />
+                                </div>
+                            </div>
+
+                            <button
+                                type="submit"
+                                className="btn w-100 py-3 mt-3 shadow-sm btn-submit-doctor"
+                                style={{ backgroundColor: "#1A5799", color: "#fff", borderRadius: "12px", fontWeight: "600", border: "none" }}
+                                disabled={uploading}
+                            >
+                                Complete Professional Registration
+                            </button>
+
+                            <div className="text-center mt-4">
+                                <p className="small text-muted">Already have an account? <Link to="/doctor/login" className="text-primary fw-bold text-decoration-none">Sign In</Link></p>
+                            </div>
+                        </form>
+                    </div>
                 </div>
-
             </div>
-        </div>
 
+            <style>{`
+                .row.g-0 { margin: 0; }
+                .row.g-0 > [class*='col-'] { padding: 0; }
+                .form-control:focus, .form-select:focus {
+                    background-color: #fff !important;
+                    border: 1px solid #1A5799 !important;
+                    box-shadow: 0 0 0 4px rgba(26, 87, 153, 0.1) !important;
+                }
+                .btn-submit-doctor:hover {
+                    background-color: #092F64 !important;
+                    transform: translateY(-2px);
+                    box-shadow: 0 5px 15px rgba(9, 47, 100, 0.2) !important;
+                }
+                }
+                container, .container-fluid, .container-lg, .container-md, .container-sm, .container-xl, .container-xxl {
+                    --bs-gutter-x: none;
+                }
+            `}</style>
+        </div>
     );
 };

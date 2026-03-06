@@ -79,10 +79,7 @@ export const LoginDoctor = () => {
         className="container shadow-lg overflow-hidden bg-white mx-3"
         style={{ borderRadius: "28px", maxWidth: "1050px", border: "none" }}
       >
-        {/* g-0 elimina el espacio bs-gutter-x que detectaste */}
         <div className="row g-0 align-items-stretch">
-
-          {/* LADO IZQUIERDO: FONDO TOTAL (SOLUCIÓN AL ESPACIO BLANCO) */}
           <div
             className="col-lg-6 d-none d-lg-flex p-0"
             style={{
@@ -90,7 +87,6 @@ export const LoginDoctor = () => {
               position: "relative"
             }}
           >
-            {/* Contenido con padding interno independiente del fondo */}
             <div className="p-5 d-flex flex-column justify-content-center w-100 text-white">
               <div className="mb-4 animate__animated animate__fadeInLeft">
                 <i className="fa-solid fa-user-md display-2 opacity-50"></i>
@@ -106,7 +102,6 @@ export const LoginDoctor = () => {
             </div>
           </div>
 
-          {/* LADO DERECHO: FORMULARIO */}
           <div className="col-12 col-lg-6 p-4 p-md-5 bg-white">
             <div className="mb-5 text-center text-lg-start">
               <h3 className="fw-bold text-dark mb-2">Doctor Login</h3>
