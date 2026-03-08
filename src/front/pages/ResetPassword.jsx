@@ -27,7 +27,7 @@ export const ResetPassword = () => {
 
         setIsLoading(true);
         try {
-            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/pacient/resetpassword`, {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/doctor/resetpassword`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -39,19 +39,19 @@ export const ResetPassword = () => {
             const data = await response.json();
             if (response.ok) {
                 Swal.fire({
-                    title: "Success!",
-                    text: "Your password has been updated. You can now log in with your new credentials.",
+                    title: "Credentials Updated",
+                    text: "Your professional password has been reset successfully.",
                     icon: "success",
                     confirmButtonColor: "#1A5799",
                     borderRadius: "16px"
                 });
-                navigate("/api/pacient/login");
+                navigate("/api/doctor/login");
             } else {
-                Swal.fire("Error", data.msg || "Invalid or expired token", "error");
+                Swal.fire("Error", data.msg || "The link has expired or is invalid.", "error");
             }
         } catch (error) {
             console.error(error);
-            Swal.fire("Error", "Server error, try again later", "error");
+            Swal.fire("Error", "Medical server connection failed", "error");
         } finally {
             setIsLoading(false);
         }
@@ -60,12 +60,12 @@ export const ResetPassword = () => {
     if (!token) {
         return (
             <div className="min-vh-100 d-flex align-items-center justify-content-center bg-light p-3">
-                <div className="text-center p-5 bg-white shadow rounded-4">
-                    <i className="fa-solid fa-triangle-exclamation text-warning display-1 mb-4"></i>
-                    <h3>Invalid Access</h3>
-                    <p className="text-muted">No security token was found. Please request a new recovery link.</p>
-                    <Link to="/api/pacient/forgotpassword" className="btn btn-primary px-4 py-2 mt-3 rounded-pill shadow-sm" style={{ backgroundColor: "#1A5799", border: "none" }}>
-                        Go to Forgot Password
+                <div className="text-center p-5 bg-white shadow" style={{ borderRadius: "24px", maxWidth: "500px" }}>
+                    <i className="fa-solid fa-user-lock text-danger display-1 mb-4 opacity-50"></i>
+                    <h3 className="fw-bold">Security Alert</h3>
+                    <p className="text-muted">No professional token detected. For security reasons, you must request a new reset link from the portal.</p>
+                    <Link to="/api/doctor/forgotpassword" className="btn btn-primary px-4 py-2 mt-3 rounded-pill shadow-sm" style={{ backgroundColor: "#1A5799", border: "none" }}>
+                        Doctor Recovery Portal
                     </Link>
                 </div>
             </div>
@@ -80,41 +80,41 @@ export const ResetPassword = () => {
             >
                 <div className="row g-0">
                     
-                    {/* LADO IZQUIERDO: DISEÑO UNIFICADO */}
+                    {/* LADO IZQUIERDO: DISEÑO UNIFICADO DOCTOR */}
                     <div className="col-lg-6 d-none d-lg-flex p-0 bg-unified-gradient">
                         <div className="d-flex flex-column justify-content-center h-100 w-100 p-5 text-white">
                             <div className="mb-4">
-                                <i className="fa-solid fa-shield-halved display-1 opacity-25"></i>
+                                <i className="fa-solid fa-user-md display-1 opacity-25"></i>
                             </div>
-                            <h2 className="fw-bold display-5 mb-3">Secure <br/>Reset.</h2>
+                            <h2 className="fw-bold display-5 mb-3">Medical <br/>Security.</h2>
                             <p className="lead opacity-75 mb-5">
-                                You're just one step away from regaining access to your health dashboard. Choose a strong password.
+                                Professional credential management. Please set a complex password to protect clinical data and patient privacy.
                             </p>
                             
                             <div className="mt-auto p-4 rounded-4" style={{ backgroundColor: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)" }}>
                                 <p className="small m-0">
-                                    <i className="fa-solid fa-lightbulb me-2 text-info"></i>
-                                    Tip: Use a mix of letters, numbers, and symbols for better security.
+                                    <i className="fa-solid fa-circle-info me-2 text-info"></i>
+                                    Passphrases with more than 10 characters are highly recommended.
                                 </p>
                             </div>
                         </div>
                     </div>
 
                     {/* LADO DERECHO: FORMULARIO */}
-                    <div className="col-12 col-lg-6">
+                    <div className="col-12 col-lg-6 bg-white">
                         <div className="p-4 p-md-5 h-100 d-flex flex-column justify-content-center">
                             
                             <div className="mb-5 text-center text-lg-start">
-                                <h3 className="fw-bold text-dark mb-2">New Password</h3>
-                                <p className="text-muted small">Complete the form to update your credentials.</p>
+                                <h3 className="fw-bold text-dark mb-2">Reset Credentials</h3>
+                                <p className="text-muted small text-uppercase" style={{ letterSpacing: "1px" }}>Doctor Portal - Password Update</p>
                             </div>
 
                             <form onSubmit={handleResetPw}>
                                 <div className="mb-4">
-                                    <label className="form-label small fw-bold text-muted text-uppercase" style={{ letterSpacing: "1px" }}>New Password</label>
+                                    <label className="form-label small fw-bold text-muted text-uppercase" style={{ letterSpacing: "1px" }}>New Professional Password</label>
                                     <div className="input-group custom-input-group">
                                         <span className="input-group-text bg-light border-0">
-                                            <i className="fa-solid fa-lock text-primary"></i>
+                                            <i className="fa-solid fa-key text-primary"></i>
                                         </span>
                                         <input 
                                             type={showPassword ? "text" : "password"} 
@@ -137,7 +137,7 @@ export const ResetPassword = () => {
                                     <label className="form-label small fw-bold text-muted text-uppercase" style={{ letterSpacing: "1px" }}>Confirm Password</label>
                                     <div className="input-group custom-input-group">
                                         <span className="input-group-text bg-light border-0">
-                                            <i className="fa-solid fa-circle-check text-primary"></i>
+                                            <i className="fa-solid fa-check-to-slot text-primary"></i>
                                         </span>
                                         <input 
                                             type={showPassword ? "text" : "password"} 
@@ -158,11 +158,17 @@ export const ResetPassword = () => {
                                         <span className="spinner-border spinner-border-sm" role="status"></span>
                                     ) : (
                                         <>
-                                            <span className="fw-bold">UPDATE PASSWORD</span>
-                                            <i className="fa-solid fa-check-double ms-2 small"></i>
+                                            <span className="fw-bold">CONFIRM UPDATED PASSWORD</span>
+                                            <i className="fa-solid fa-shield-check ms-2 small"></i>
                                         </>
                                     )}
                                 </button>
+
+                                <div className="text-center pt-2">
+                                    <Link to="/api/doctor/login" className="text-muted text-decoration-none small hover-link">
+                                        <i className="fa-solid fa-arrow-left me-2"></i> Cancel and go back
+                                    </Link>
+                                </div>
                             </form>
                         </div>
                     </div>
@@ -173,8 +179,8 @@ export const ResetPassword = () => {
                 .bg-unified-gradient {
                     background: linear-gradient(135deg, #1A5799 0%, #092F64 100%) !important;
                 }
-                .row.g-0 { margin: 0; }
-                .row.g-0 > [class*='col-'] { padding: 0; }
+                .row.g-0 { margin: 0 !important; }
+                .row.g-0 > [class*='col-'] { padding: 0 !important; }
 
                 .custom-input-group {
                     background-color: #f8f9fa;
@@ -200,6 +206,9 @@ export const ResetPassword = () => {
                     transform: translateY(-1px);
                     box-shadow: 0 5px 15px rgba(26, 87, 153, 0.3);
                     color: white;
+                }
+                .hover-link:hover {
+                    text-decoration: underline !important;
                 }
             `}</style>
         </div>

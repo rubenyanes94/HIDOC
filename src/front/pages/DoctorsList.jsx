@@ -13,6 +13,7 @@ export const DoctorsList = () => {
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedSpecialty, setSelectedSpecialty] = useState("Todas");
 
+    // Integración con SymptomChecker: Captura la especialidad de la URL
     useEffect(() => {
         const params = new URLSearchParams(location.search);
         const specialtyParam = params.get("specialty");
@@ -86,17 +87,19 @@ export const DoctorsList = () => {
 
     return (
         <div className="doctors-layout-wrapper">
-            <div className="search-header w-100">
+            <div className="search-header w-100 p-3 p-md-4">
                 <div className="row align-items-center">
-                    <div className="col-md-4 mb-3 mb-md-0">
+                    {/* Título: centrado en móvil, izquierda en PC */}
+                    <div className="col-12 col-md-4 mb-3 mb-md-0 text-center text-md-start">
                         <h4 className="search-title">Doctors Network</h4>
                         <small className="search-subtitle">
                             {store.doctors.length === 0 ? "Conectando..." : `${filteredDoctors.length} Available Doctors`}
                         </small>
                     </div>
-                    <div className="col-md-8">
+                    {/* Buscadores: apilados en móvil, línea en PC */}
+                    <div className="col-12 col-md-8">
                         <div className="row g-2">
-                            <div className="col-md-7">
+                            <div className="col-12 col-md-7">
                                 <div className="input-group modern-search-bar">
                                     <span className="input-group-text border-0 bg-transparent ps-2">
                                         <i className="fa-solid fa-magnifying-glass search-icon"></i>
@@ -111,7 +114,7 @@ export const DoctorsList = () => {
                                 </div>
                             </div>
 
-                            <div className="col-md-5">
+                            <div className="col-12 col-md-5">
                                 <div className="input-group modern-search-bar">
                                     <span className="input-group-text border-0 bg-transparent ps-2">
                                         <i className="fa-solid fa-stethoscope search-icon"></i>
@@ -133,8 +136,10 @@ export const DoctorsList = () => {
                     </div>
                 </div>
             </div>
+
             <div className="row g-0 doctors-content-area">
-                <div className="col-lg-7 col-xl-8 doctors-list-column p-4">
+                {/* Lista de doctores: ocupa todo el ancho en móvil/tablet */}
+                <div className="col-12 col-lg-7 col-xl-8 doctors-list-column p-2 p-md-4">
                     <div className="mx-auto" style={{ maxWidth: "900px" }}>
 
                         {store.doctors && store.doctors.length === 0 ? (
@@ -170,10 +175,27 @@ export const DoctorsList = () => {
                         )}
                     </div>
                 </div>
+                {/* Mapa: oculto en móvil, visible desde LG (PC) */}
                 <div className="col-lg-5 col-xl-4 d-none d-lg-block map-column">
                     <MapView doctors={filteredDoctors} />
                 </div>
             </div>
+
+            {/* Estilos mínimos para asegurar la responsividad sin cambiar tu diseño original */}
+            <style>{`
+                @media (max-width: 768px) {
+                    .search-header {
+                        padding: 15px !important;
+                    }
+                    .doctors-list-column {
+                        padding: 10px !important;
+                    }
+                    /* Asegura que las cards no se corten en pantallas muy pequeñas */
+                    .modern-search-bar input, .modern-search-bar select {
+                        font-size: 14px;
+                    }
+                }
+            `}</style>
         </div>
     );
 };
