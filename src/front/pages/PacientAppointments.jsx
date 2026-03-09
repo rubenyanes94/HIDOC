@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import useGlobalReducer from "../hooks/useGlobalReducer";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react"; // <-- IMPORTANTE: Añadimos useRef
 import Swal from "sweetalert2";
 import Cal, { getCalApi } from "@calcom/embed-react";
 import "../index.css";
@@ -16,6 +16,17 @@ export const PacientAppointments = () => {
     const [form, setForm] = useState({ reason: "" });
     const [loading, setLoading] = useState(true);
 
+    // 1. EL BLINDAJE: Referencias para evitar el loop y duplicados
+    const latestDoctorId = useRef("");
+    const latestForm = useRef({ reason: "" });
+    const hasBooked = useRef(false); // Candado de seguridad
+
+    // Mantenemos las referencias actualizadas silenciosamente
+    useEffect(() => {
+        latestDoctorId.current = selectedDoctorId;
+        latestForm.current = form;
+    }, [selectedDoctorId, form]);
+
     // Inicializar Cal.com globalmente
     useEffect(() => {
         (async function () {
@@ -29,19 +40,25 @@ export const PacientAppointments = () => {
         })();
     }, []);
 
-    // MODIFICACIÓN APLICADA AQUÍ: Guardar en la DB cuando Cal.com confirma
+    // 2. EVENTO CAL.COM: Se ejecuta solo 1 vez al montar el componente
     useEffect(() => {
         (async function () {
             const cal = await getCalApi();
             cal("on", {
                 action: "bookingSuccessful",
                 callback: async (event) => {
+                    // CANDADO: Si ya guardamos, ignoramos cualquier evento duplicado de Cal.com
+                    if (hasBooked.current) return;
+                    hasBooked.current = true; 
+
                     const calData = event.detail.data;
+                    const currentDoctorId = latestDoctorId.current;
+                    const currentReason = latestForm.current.reason;
                     
                     try {
                         const token = localStorage.getItem("token");
                         
-                        // Enviamos los datos a NUESTRO backend
+                        // Enviamos los datos a NUESTRO backend (UNA SOLA VEZ GARANTIZADA)
                         const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/appointments`, {
                             method: "POST",
                             headers: {
@@ -49,9 +66,9 @@ export const PacientAppointments = () => {
                                 "Authorization": `Bearer ${token}`
                             },
                             body: JSON.stringify({
-                                doctor_id: selectedDoctorId,
-                                dateTime: calData.date, // Cal.com devuelve la fecha ISO aquí
-                                reason: form.reason, 
+                                doctor_id: currentDoctorId,
+                                dateTime: calData.date, // Fecha ISO
+                                reason: currentReason, 
                                 cal_booking_uid: calData.uid 
                             })
                         });
@@ -60,7 +77,7 @@ export const PacientAppointments = () => {
                             throw new Error("No se pudo guardar la cita en la base de datos");
                         }
 
-                        // Si se guardó en nuestro backend, mostramos éxito y redirigimos
+                        // Éxito total
                         Swal.fire({
                             title: "¡Cita Agendada!",
                             text: "Tu cita se ha registrado correctamente en el sistema.",
@@ -89,7 +106,7 @@ export const PacientAppointments = () => {
                 },
             });
         })();
-    }, [navigate, selectedDoctorId, form.reason]); // Dependencias actualizadas para leer el doctor y la razón
+    }, [navigate]); // <-- MAGIA: Dependencia vacía [navigate] previene los escuchadores duplicados
 
     // Fetch doctors
     useEffect(() => {
@@ -192,7 +209,6 @@ export const PacientAppointments = () => {
                             </div>
                         </div>
                     </div>
-
            
                     <div className="appt-card">
                         <div className="appt-card-body">
@@ -219,7 +235,6 @@ export const PacientAppointments = () => {
                                 </select>
                             </div>
 
-                    
                             {selectedSpecialty && (
                                 <div className="appt-form-group">
                                     <label className="appt-label">
@@ -239,7 +254,6 @@ export const PacientAppointments = () => {
                                 </div>
                             )}
 
-                     
                             {doctor && (
                                 <div className="appt-doctor-info appt-slide-up">
                                     <img
@@ -254,7 +268,6 @@ export const PacientAppointments = () => {
                                 </div>
                             )}
 
-                  
                             <div className="appt-form-group">
                                 <label className="appt-label">
                                     <i className="fa-solid fa-clipboard-list"></i>
@@ -269,7 +282,6 @@ export const PacientAppointments = () => {
                                     onChange={handleChange}
                                 />
                             </div>
-
                        
                             {doctor && (
                                 <div className="appt-d-grid">
