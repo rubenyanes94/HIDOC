@@ -29,31 +29,67 @@ export const PacientAppointments = () => {
         })();
     }, []);
 
-
+    // MODIFICACIÓN APLICADA AQUÍ: Guardar en la DB cuando Cal.com confirma
     useEffect(() => {
         (async function () {
             const cal = await getCalApi();
             cal("on", {
                 action: "bookingSuccessful",
                 callback: async (event) => {
-                   
-                    Swal.fire({
-                        title: "¡Cita Agendada!",
-                        text: "Tu cita se ha registrado correctamente.",
-                        icon: "success",
-                        confirmButtonText: "Ver mis citas",
-                        confirmButtonColor: "#035aa6",
-                        showCancelButton: false,
-                        allowOutsideClick: false
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            navigate("/api/listappointments");
+                    const calData = event.detail.data;
+                    
+                    try {
+                        const token = localStorage.getItem("token");
+                        
+                        // Enviamos los datos a NUESTRO backend
+                        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/appointments`, {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "Authorization": `Bearer ${token}`
+                            },
+                            body: JSON.stringify({
+                                doctor_id: selectedDoctorId,
+                                dateTime: calData.date, // Cal.com devuelve la fecha ISO aquí
+                                reason: form.reason, 
+                                cal_booking_uid: calData.uid 
+                            })
+                        });
+
+                        if (!response.ok) {
+                            throw new Error("No se pudo guardar la cita en la base de datos");
                         }
-                    });
+
+                        // Si se guardó en nuestro backend, mostramos éxito y redirigimos
+                        Swal.fire({
+                            title: "¡Cita Agendada!",
+                            text: "Tu cita se ha registrado correctamente en el sistema.",
+                            icon: "success",
+                            confirmButtonText: "Ver mis citas",
+                            confirmButtonColor: "#035aa6",
+                            showCancelButton: false,
+                            allowOutsideClick: false
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                navigate("/api/listappointments");
+                            }
+                        });
+
+                    } catch (error) {
+                        console.error("Error guardando cita localmente:", error);
+                        Swal.fire({
+                            title: "Aviso de Sincronización",
+                            text: "Tu cita se agendó en el calendario, pero hubo un retraso sincronizando con tu perfil. Si no aparece en tu lista, contacta soporte.",
+                            icon: "warning",
+                            confirmButtonColor: "#035aa6"
+                        }).then(() => {
+                            navigate("/api/listappointments");
+                        });
+                    }
                 },
             });
         })();
-    }, [navigate]);
+    }, [navigate, selectedDoctorId, form.reason]); // Dependencias actualizadas para leer el doctor y la razón
 
     // Fetch doctors
     useEffect(() => {
@@ -78,7 +114,6 @@ export const PacientAppointments = () => {
         fetchDoctors();
     }, []);
 
- 
     useEffect(() => {
         if (!selectedDoctorId) {
             setDoctor(null);
