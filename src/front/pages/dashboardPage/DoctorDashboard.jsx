@@ -5,7 +5,6 @@ import { AppointmentsTable } from "./AppointmentsTable"
 import './doctorDashboard.css'
 import { DoctorProfileCard } from "./DoctorProfileCard"
 
-
 export const DoctorDashboard = () => {
 
   const { store, dispatch } = useGlobalReducer()
@@ -73,25 +72,35 @@ export const DoctorDashboard = () => {
     return () => clearInterval(interval);
   }, []);
 
-
   return (
-    <div className="container-dashboard my-5">
+        <div className="min-vh-100 bg-light py-4 py-md-5">
+            <div className="container">
+                <div className="row g-4">
+                    <div className="col-12 col-lg-3">
+                        <DoctorProfileCard doctor={doctor} />
+                        
+                        <div className="mt-4 p-4 rounded-4 bg-primary text-white d-none d-lg-block shadow-sm">
+                            <h6 className="fw-bold mb-2">Pro Tip:</h6>
+                            <p className="small mb-0 opacity-75">Keep your schedule updated to reduce no-shows by 40%.</p>
+                        </div>
+                    </div>
+                    <div className="col-12 col-lg-9">
+                        <div className="mb-4 text-center text-md-start">
+                            <h2 className="fw-bold text-dark">Welcome back, Dr. {doctor?.name.split(' ')[0]}</h2>
+                            <p className="text-muted">Here's what is happening with your practice today.</p>
+                        </div>
 
-      <div className="profile-doc">
-        <DoctorProfileCard
-          doctor={doctor}
-        />
-      </div>
-
-      <div className="container-stat mt-5">
-        <h2 className="mb-4">Performance overview</h2>
-
-        <DashboardStats appointments={store.appointments} />
-        <AppointmentsTable appointments={store.appointments}
-          onUpdateStatus={updateAppointmentStatus}
-        />
-      </div>
-    </div>
-
-  )
-}
+                        <DashboardStats appointments={store.appointments || []} />
+                        
+                        <div className="mt-5">
+                            <AppointmentsTable 
+                                appointments={store.appointments || []}
+                                onUpdateStatus={updateAppointmentStatus}
+                            />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};

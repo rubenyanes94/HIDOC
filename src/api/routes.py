@@ -356,3 +356,47 @@ def cancel_cal_booking(booking_id):
     except Exception as e:
         print(f"Error cancelando en Cal.com: {e}")
         return False
+
+@api.route('/doctor/appointments', methods=['GET'])
+@jwt_required()
+def get_doctor_appointments():
+    # Obtenemos el email del doctor desde el token
+    email_doctor = get_jwt_identity()
+    doctor = Doctors.query.filter_by(email=email_doctor).first()
+    
+    if not doctor:
+        return jsonify({"msg": "Doctor no encontrado"}), 404
+
+    # Buscamos todas las citas asociadas a este doctor
+    appointments = Appointments.query.filter_by(doctor_id=doctor.id).all()
+    
+    # Serializamos los datos para el front
+    results = [apt.serialize() for apt in appointments]
+    
+    return jsonify({"appointments": results}), 200
+
+@api.route('/doctor/appointments/<int:id>', methods=['PUT'])
+@jwt_required()
+def update_appointment_status(id):
+    appointment = Appointments.query.get(id)
+    if not appointment:
+        return jsonify({"msg": "Cita no encontrada"}), 404
+        
+    data = request.get_json()
+    new_status = data.get("status") # 'confirmed', 'cancelled', 'pending'
+
+    if not new_status:
+        return jsonify({"msg": "Status requerido"}), 400
+
+    try:
+        # Convertimos el string que viene del front al Enum del modelo
+        appointment.status = StatusAppointment[new_status.lower()]
+        db.session.commit()
+        
+        return jsonify({
+            "msg": f"Cita {new_status} con éxito",
+            "appointment": appointment.serialize()
+        }), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"msg": "Error al actualizar estado", "error": str(e)}), 500

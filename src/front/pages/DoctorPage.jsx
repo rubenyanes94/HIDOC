@@ -1,30 +1,25 @@
 import { useEffect, useState, useRef } from "react"
-import { Link, useParams } from "react-router-dom"
+import { useParams } from "react-router-dom"
 import useGlobalReducer from "../hooks/useGlobalReducer"
 import { Biography } from "./Biography"
 import { DocttoCalendar } from "./DoctorCalendar"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faCalendar } from "@fortawesome/free-regular-svg-icons"
 import { DoctorMap } from "./DoctorMap"
 import { DoctorStickyProfile } from "./DocttoStickProfile"
 
 export const DoctorPage = () => {
-
     const { doctorId } = useParams()
-    const { store } = useGlobalReducer()
-
     const [doctor, setDoctor] = useState({})
+    const [activeTab, setActiveTab] = useState("highlights")
+    const [showSticky, setShowSticky] = useState(false)
 
+    // Refs para scroll
     const aboutRef = useRef(null)
     const locationRef = useRef(null)
     const highLightsRef = useRef(null)
     const insurancesRef = useRef(null)
     const faqsRef = useRef(null)
-    const [activeTab, setActiveTab] = useState("highlights")
-
     const topProfileRef = useRef(null)
     const calendarRef = useRef(null)
-    const [showSticky, setShowSticky] = useState(false)
 
     const getDoctor = async () => {
         const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/doctor/${doctorId}`)
@@ -33,300 +28,204 @@ export const DoctorPage = () => {
     }
 
     useEffect(() => {
-
-        if (doctorId)
-            getDoctor()
+        if (doctorId) getDoctor()
     }, [doctorId])
-    // console.log(doctor)
 
     const handleTabClick = (tabName, scrollRef) => {
         setActiveTab(tabName)
-        scrollRef.current?.scrollIntoView({ behavior: "smooth" })
+        const offset = 100; // Ajuste para que el header no tape el título
+        const elementPosition = scrollRef.current?.getBoundingClientRect().top + window.pageYOffset;
+        window.scrollTo({ top: elementPosition - offset, behavior: "smooth" });
     }
 
     useEffect(() => {
-        if (!calendarRef.current) return
-
         const handleScroll = () => {
+            if (!calendarRef.current) return
             const calendarBottom = calendarRef.current.getBoundingClientRect().bottom
-
             setShowSticky(calendarBottom < 0)
         }
         window.addEventListener("scroll", handleScroll)
         return () => window.removeEventListener("scroll", handleScroll)
     }, [])
 
-
     return (
-        <>
+        <div className="doctor-page-wrapper bg-white">
             {showSticky && (
                 <DoctorStickyProfile
                     doctor={doctor}
-                    onClick={() =>
-                        topProfileRef.current?.scrollIntoView({ behavior: "smooth" })
-                    }
+                    onClick={() => topProfileRef.current?.scrollIntoView({ behavior: "smooth" })}
                 />
             )}
-            <div ref={topProfileRef} className="profile-doctor d-sm-flex justify-content-sm-start" style={{ background: "#e9f5ff87" }}>
-                <div className=" p-3 ms-5" >
-                    <li className="d-block ms-5 mt-5">
-                        <div className="d-flex ">
+
+            {/* HEADER DEL PERFIL */}
+            <div ref={topProfileRef} className="profile-header-bg py-4 py-md-5" style={{ background: "linear-gradient(180deg, #e9f5ff 0%, #ffffff 100%)" }}>
+                <div className="container">
+                    <div className="row align-items-center">
+                        <div className="col-12 col-md-auto text-center text-md-start mb-3 mb-md-0">
                             <img
                                 src={doctor.picture}
-                                alt="imagen"
-                                style={{
-                                    width: "100px",
-                                    height: "100px",
-                                    borderRadius: "50%",
-                                    objectFit: "cover"
-                                }}
+                                alt={doctor.name}
+                                className="shadow-sm doctor-main-img"
+                                style={{ width: "150px", height: "150px", borderRadius: "50%", objectFit: "cover", border: "5px solid white" }}
                             />
-                            <div className="ms-3 mbs">
-                                <h4 className="fs-3"> Dr. {doctor.name} </h4>
-                                <p className=" mt-1" style={{ color: "#468BE6" }}>{doctor.specialties}</p>
-                                <p className="fw-lighter"> {doctor.address} </p>
-                            </div>
                         </div>
-
-                        <div className="d-flex gap-5 flex-sm-row mt-4 ">
-                            <span
-                                className={`fw-semibold pb-2 ${activeTab === "highlights" ? "border-bottom border-primary border-2 text-primary" : "text-dark"}`}
-                                onClick={() => handleTabClick("highlights", highLightsRef)}
-                                style={{ cursor: "pointer" }}
-                            >    Highlights </span>
-                            <span
-                                className={`fw-semibold pb-2 ${activeTab === "about" ? "border-bottom border-primary border-2 text-primary" : "text-dark"}`}
-                                onClick={() => handleTabClick("about", aboutRef)}
-                                style={{ cursor: "pointer" }}>
-                                About
-                            </span>
-                            <span className={`fw-semibold pb-2 ${activeTab === "insurances" ? "border-bottom border-primary border-2 text-primary" : "text-dark"}`}
-                                onClick={() => handleTabClick("insurances", insurancesRef)}
-                                style={{ cursor: "pointer" }}>
-                                Insurances
-                            </span>
-                            <span className={`fw-semibold pb-2 ${activeTab === "location" ? "border-bottom border-primary border-2 text-primary" : "text-dark"}`}
-                                onClick={() => handleTabClick("location", locationRef)}
-                                style={{ cursor: "pointer" }} >
-                                Location
-                            </span>
-                            <span className={`fw-semibold pb-2 ${activeTab === "faqs" ? "border-bottom border-primary border-2 text-primary" : "text-dark"}`}
-                                onClick={() => handleTabClick("faqs", faqsRef)}
-                                style={{ cursor: "pointer" }} >Faqs</span>
-                        </div>
-                    </li>
-                    <div className="mt-5  ms-5 d-flex">
-                        <div style={{width: "500px"}}>
-                            <h1 style={{fontSize: "20px", fontWeight: "bold"}}>Trusted Care You Can Count On</h1>
-                            <p className="d-flex text-justify">Dr. {doctor.name} is a licensed, board-certified {doctor.specialties} with years of dedicated
-                                    experience providing compassionate, patient-centered care. Committed to your health and well-being,
-                                    they combine clinical expertise with a personalized approach to ensure you receive the highest
-                                    quality treatment. Every consultation is handled with professionalism, confidentiality, and
-                                    respect—because your trust is the foundation of great healthcare.</p>
+                        <div className="col-12 col-md text-center text-md-start">
+                            <h1 className="fw-bold h2 mb-1">Dr. {doctor.name}</h1>
+                            <p className="fs-5 fw-medium mb-2" style={{ color: "#468BE6" }}>{doctor.specialties}</p>
+                            <p className="text-muted mb-0"><i className="fa-solid fa-location-dot me-2"></i>{doctor.address}</p>
                         </div>
                     </div>
-                    <hr className="ms-5" />
-                    <div className="ms-5 d-flex mt-5">
-                        <img className=""
-                            src="data:image/svg+xml;base64,PHN2ZyBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MyA0MiI+CiAgPHBhdGggZD0iTTIwLjg0IDcuOTNjLjIyLS4zIDEuMDEtLjMgMS4yMyAwIDEuMjggMS42NyA0LjUzIDMuNzQgMTEuMiAzLjgyLjA3LS4xNy4xMy0uMzUuMTYtLjUzbC4xNi0uODIuMTUuODJjLjEuNS4zNS45OC43MiAxLjM2LjM3LjM4Ljg0LjY1IDEuMzcuNzhhMi44OCAyLjg4IDAgMCAwLTIuMDkgMi4xNWwtLjA4LjQ1djEuMThBMjAuMSAyMC4xIDAgMCAxIDIxLjYgMzQuNWEuMzYuMzYgMCAwIDEtLjI4IDBBMjAuMSAyMC4xIDAgMCAxIDkuMjYgMTcuMTRWMTIuMWMwLS4yLjE2LS4zNi4zNi0uMzYgNi42OS0uMDcgOS45NS0yLjE1IDExLjIyLTMuODJaIiBmaWxsPSIjRkRGQUVFIi8+CiAgPHBhdGggZD0iTTIyLjEyIDExLjA4Yy0uMjQtLjI3LTEuMS0uMjgtMS4zNCAwLTEuMSAxLjI0LTMuNjIgMi42Ni04LjQ3IDIuNzItLjIgMC0uMzYuMTctLjM2LjM3djMuODFhMTUuNTggMTUuNTggMCAwIDAgOS4zNyAxMy40NWMuMDkuMDMuMi4wMy4yOCAwYTE1LjYgMTUuNiAwIDAgMCA5LjItMTMuNDV2LTMuODFjMC0uMi0uMTYtLjM2LS4zNi0uMzctNC43NS0uMDYtNy4yMy0xLjQ4LTguMzItMi43MloiIGZpbGw9IiNGRUQzMzciLz4KICA8cGF0aCBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGNsaXAtcnVsZT0iZXZlbm9kZCIgZD0iTTMzLjU5IDEwLjA0Yy4xNyAwIC4zMi4xMy4zNS4zbC4xNi44MmMuMDguNDMuMy44NC42MiAxLjE3LjMyLjMzLjc0LjU3IDEuMi42OWEuMzYuMzYgMCAwIDEgMCAuN2MtLjQ2LjExLS44OC4zNS0xLjIuNjhhMi4zIDIuMyAwIDAgMC0uNjIgMS4xN2wtLjE2LjgyYS4zNi4zNiAwIDAgMS0uNyAwbC0uMTYtLjgyYTIuMyAyLjMgMCAwIDAtLjYyLTEuMTcgMi41NyAyLjU3IDAgMCAwLTEuMi0uNjkuMzYuMzYgMCAwIDEgMC0uN2MuNDYtLjExLjg4LS4zNSAxLjItLjY4LjMyLS4zMy41NC0uNzQuNjItMS4xN2wuMTYtLjgzYS4zNi4zNiAwIDAgMSAuMzUtLjI5Wm0wIDEuODhhMy4wNiAzLjA2IDAgMCAxLTEuMyAxLjQ1IDMuMjIgMy4yMiAwIDAgMSAxLjMgMS40NCAzLjA2IDMuMDYgMCAwIDEgMS4zLTEuNDQgMy4yMiAzLjIyIDAgMCAxLTEuMy0xLjQ1WiIgZmlsbD0iI0ZGOEE1NiIvPgogIDxwYXRoIGQ9Im0yMS4xMyA4LjE1LjA4LS4wNWEuOC44IDAgMCAxIC4yNS0uMDNjLjEgMCAuMTguMDEuMjUuMDNsLjA4LjA1YzEuMzIgMS43MyA0LjU0IDMuNzUgMTAuODcgMy45NC4xNi0uMjEuMjktLjQ1LjM2LS43LTYuNDMtLjEzLTkuNS0yLjE1LTEwLjY2LTMuNjhhLjg4Ljg4IDAgMCAwLS40My0uMjkgMS41MSAxLjUxIDAgMCAwLS45NSAwIC44OC44OCAwIDAgMC0uNDIuMjljLTEuMTkgMS41NS00LjMyIDMuNi0xMC45NCAzLjY4YS43Mi43MiAwIDAgMC0uNzIuNzJ2NS4wM2EyMC40NiAyMC40NiAwIDAgMCAxMi4yNyAxNy43Yy4xOC4wNy40LjA3LjU3IDBhMjAuNDYgMjAuNDYgMCAwIDAgMTIuMjgtMTcuN1YxNmwtLjA4LjRhLjM2LjM2IDAgMCAxLS42NC4xNHYuNmExOS43NSAxOS43NSAwIDAgMS0xMS44NCAxNy4wM0ExOS43NSAxOS43NSAwIDAgMSA5LjYyIDE3LjEzdi01LjAyYzYuNzYtLjA4IDEwLjE0LTIuMTcgMTEuNS0zLjk2WiIgZmlsbD0iIzMzMyIvPgogIDxwYXRoIGQ9Ik0yMi4yNSAyNS4zYy4yIDAgLjM2LS4xNi4zNi0uMzV2LTIuMjhjMC0uMi4xNi0uMzYuMzYtLjM2aDIuMjdjLjIgMCAuMzYtLjE2LjM2LS4zNnYtMS41NmMwLS4yLS4xNi0uMzYtLjM2LS4zNmgtMi4yN2EuMzYuMzYgMCAwIDEtLjM2LS4zNlYxNy40YzAtLjItLjE2LS4zNS0uMzYtLjM1aC0xLjU2Yy0uMiAwLS4zNi4xNi0uMzYuMzV2Mi4yN2MwIC4yLS4xNi4zNi0uMzYuMzZIMTcuN2MtLjIgMC0uMzYuMTYtLjM2LjM2djEuNTZjMCAuMi4xNi4zNi4zNi4zNmgyLjI3Yy4yIDAgLjM2LjE2LjM2LjM2djIuMjhjMCAuMi4xNi4zNi4zNi4zNmgxLjU2WiIgZmlsbD0iIzMzMyIvPgo8L3N2Zz4K"
-                            style={{
-                                width: "50px",
-                                height: "50px",
-                                borderRadius: "50%",
-                                objectFit: "cover",
-                                color: "#1A5799"
-                            }}
-                        />
-                        <div className="d-flex flex-column">
-                            <div className="mt-1">
-                                <p className="fs-5 fw-medium">In-network insurances</p>
-                                <p> AmeriHealth, Ambether, Aetna, UnitedHealthOne </p>
-                                <p className=" fw-medium">(10+) more in-network plans</p>
-                            </div>
+
+                    {/* TABS NAVEGACIÓN - Scrollable en móvil */}
+                    <div className="tabs-container-scrollable mt-4 border-bottom">
+                        <div className="d-flex gap-4 no-scrollbar" style={{ overflowX: "auto", whiteSpace: "nowrap" }}>
+                            {[
+                                { id: "highlights", label: "Highlights", ref: highLightsRef },
+                                { id: "about", label: "About", ref: aboutRef },
+                                { id: "insurances", label: "Insurances", ref: insurancesRef },
+                                { id: "location", label: "Location", ref: locationRef },
+                                { id: "faqs", label: "FAQs", ref: faqsRef }
+                            ].map((tab) => (
+                                <span
+                                    key={tab.id}
+                                    className={`pb-2 fw-bold tab-item ${activeTab === tab.id ? "active-tab text-primary" : "text-muted"}`}
+                                    onClick={() => handleTabClick(tab.id, tab.ref)}
+                                    style={{ cursor: "pointer", fontSize: "0.95rem" }}
+                                >
+                                    {tab.label}
+                                </span>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* CONTENIDO PRINCIPAL */}
+            <div className="container mt-4">
+                <div className="row g-5">
+                    {/* COLUMNA IZQUIERDA: Información */}
+                    <div className="col-12 col-lg-7">
+                        <section ref={highLightsRef} className="mb-5">
+                            <h3 className="fw-bold h5 mb-3">Trusted Care You Can Count On</h3>
+                            <p className="text-secondary leading-relaxed">
+                                Dr. {doctor.name} is a licensed, board-certified {doctor.specialties} with years of dedicated experience...
+                            </p>
                             
-                        </div>
-                    </div>
-                </div>
-                <div className="ms-5 p-5 calendar-doctor"
-                    ref={calendarRef}
-                >
-                    <h3>Service days available</h3>
-                    <p>The office partners with HiDoc to schedule appointments</p>
-                    <div className="mt-3">
-                        <div className="mt-3 d-flex justify-content-center" style={{maxWidth: "100%"}}>
-                            <DocttoCalendar doctorId={doctor.id}/>
-                        </div>
-                    </div>
-                    <p className="text-muted text-center my-4"
-                    style={{fontSize: "15px"}}
-                    >This is only referencial, to book an appointment look for the doctor on the booking page.</p>
-                </div>
-            </div>
-
-            <div ref={aboutRef} className="mt-5 doctor-section-profile">
-                <h4> About Dr. {doctor.name}</h4>
-                <h5 className="mt-3 fw-medium" >Clientele seen</h5>
-                <div className="ms-3">
-                    {
-                        doctor.specialties === "Pediatrics" ?
-                            (
-                                <div className=" mt-3 d-flex justify-content-sm-between flex-sm-wrap about-stection-customer">
-                                    <li className="fw-light">Newborns (0-12 months)</li>
-                                    <li className="fw-light">Infants (1-3 years)</li>
-                                    <li className="fw-light">Children (4-12 years)</li>
-                                    <li className="fw-light">Adolescents (13-17 years)</li>
+                            <div className="insurance-preview-card p-3 rounded-4 border bg-light d-flex align-items-center mt-4">
+                                <div className="icon-shield me-3 text-primary fs-2">
+                                    <i className="fa-solid fa-shield-heart"></i>
                                 </div>
-                            )
-                            :
-                            (
-                                <div className="mt-3 d-flex justify-content-sm-between flex-sm-wrap about-stection-customer">
-                                    <li className="fw-light">Young adults (18-24)</li>
-                                    <li className="fw-light">  Individuals Adults (25-64)</li>
-                                    <li className="fw-light"> Seniors (65+) </li>
-                                    <li className="fw-light">Individuals</li>
-                                </div>
-                            )
-                    }
-                </div>
-                <div className="mt-4">
-                    <h5 className="fw-medium"> Languages spoken </h5>
-                    <p className="fw-light"> English, Spanish</p>
-                </div>
-                <div className="mt-4">
-                    <h5 className="fw-medium">Getting to know Dr. {doctor.name}</h5>
-                    < Biography text={doctor.biography} />
-                </div>
-
-                <div className="mt-4" ref={insurancesRef}>
-                    <h5 className="fw-medium"> Is this doctor in your insurance network? </h5>
-                    <p>Check if your insurance is part of the list</p>
-                    <p className="fw-semibold mt-4">In-network insurances</p>
-                    <div className="mt-4" style={{ width: "60%" }}>
-                        <div className="d-flex justify-content-sm-between">
-                            <div >
-                                <img src="https://brandlogos.net/wp-content/uploads/2023/09/aetna-logo_brandlogos.net_ufcp5.png"
-                                    style={{
-                                        width: "90px",
-                                        height: "auto",
-                                    }}
-                                />
-                                <span className="ms-3">Aetna</span>
-                            </div>
-                            <div >
-                                <img src="https://tse2.mm.bing.net/th/id/OIP.UN0zdQ4I5J_FteSR_bvUeAHaHa?cb=defcache2defcache=1&rs=1&pid=ImgDetMain&o=7&rm=3"
-                                    style={{
-                                        width: "40px",
-                                        height: "auto",
-                                    }}
-                                />
-                                <span className="ms-3">Ambether</span>
-                            </div>
-                        </div>
-
-                        <div className="mt-3 d-flex justify-content-sm-between">
-                            <div >
-                                <img src="https://w7.pngwing.com/pngs/283/333/png-transparent-logo-brand-product-design-font-employee-reporting-relationship-text-logo-amerihealth.png"
-                                    style={{
-                                        width: "90px",
-                                        height: "auto",
-                                    }}
-                                />
-                                <span className="ms-3">AmeriHealth</span>
-                            </div>
-                            <div >
-                                <img src="https://tse3.mm.bing.net/th/id/OIP.VBv0dU0sdj6jEhACMTtIoAHaEK?cb=defcache2defcache=1&rs=1&pid=ImgDetMain&o=7&rm=3"
-                                    style={{
-                                        width: "90px",
-                                        height: "auto",
-                                    }}
-                                />
-                                <span className="ms-3">Medicare</span>
-                            </div>
-                        </div>
-
-                        <div className="d-flex mt-4">
-                            <p>150+ more in-network plans</p>
-                            <button type="button" className="modal-insurance ms-2" data-bs-toggle="modal" data-bs-target="#staticBackdrop"> View all</button>
-                        </div>
-                        <div className="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabIndex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-                            <div className="modal-dialog">
-                                <div className="modal-content">
-                                    <div className="modal-header">
-                                        <h1 className="modal-title fs-5" id="staticBackdropLabel">In-network insurances</h1>
-                                        <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                    </div>
-                                    <div className="modal-body">
-                                        <p> OMNIA </p>
-                                        <p>Quest Behavioral Health</p>
-                                        <p> Advantage EPO with Blue HPN </p>
-                                        <p>OMNIA Gold - Standard Gold Off Exchange</p>
-                                        <p>OMNIA Silver HSA - Standard Silver Off</p>
-                                        <p>Independence Blue Cross</p>
-                                        <p>Health Fund CDHP by Dell</p>
-                                    </div>
-                                    <div className="modal-footer">
-                                        <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                    </div>
+                                <div>
+                                    <p className="fw-bold mb-0">In-network insurances</p>
+                                    <p className="small text-muted mb-0">Aetna, AmeriHealth, UnitedHealthOne and 10+ more</p>
                                 </div>
                             </div>
-                        </div>
-                    </div>
+                        </section>
 
-                </div>
-
-                <h5 className="mt-5">Office location</h5>
-
-                <div className="mt-4 p-2 d-flex justify-content-between"
-                    style={{
-                        width: "80%", borderRadius: "1rem",
-                        border: "2px solid #1a5799"
-                    }} ref={locationRef}>
-
-                    <div className="mt-1 rounded-2 border p-2"
-                        style={{ width: "30%"}}>
-                        <h6>Direction</h6>
-                        <p> {doctor.address} </p>
                         <hr />
-                        <h6 className="mt-1">Business hours</h6>
-                        <p className="mt-1">Check availability.</p>
+
+                        <section ref={aboutRef} className="py-4">
+                            <h4 className="fw-bold h5 mb-4">About Dr. {doctor.name}</h4>
+                            <div className="mb-4">
+                                <h6 className="fw-bold text-dark mb-3">Clientele seen</h6>
+                                <div className="d-flex flex-wrap gap-2">
+                                    {doctor.specialties === "Pediatrics" ? 
+                                        ["Newborns", "Infants", "Children", "Adolescents"].map(t => <span key={t} className="badge bg-white text-dark border fw-normal p-2 px-3 rounded-pill">{t}</span>) :
+                                        ["Young adults", "Adults", "Seniors"].map(t => <span key={t} className="badge bg-white text-dark border fw-normal p-2 px-3 rounded-pill">{t}</span>)
+                                    }
+                                </div>
+                            </div>
+                            <h6 className="fw-bold mb-2">Languages</h6>
+                            <p className="text-secondary">English, Spanish</p>
+                            
+                            <div className="mt-4">
+                                <h6 className="fw-bold mb-2">Biography</h6>
+                                <Biography text={doctor.biography} />
+                            </div>
+                        </section>
+
+                        <section ref={insurancesRef} className="py-4">
+                            <h5 className="fw-bold">Insurances</h5>
+                            <div className="row g-3 mt-2">
+                                {/* Logos con layout responsivo */}
+                                {["Aetna", "Ambether", "AmeriHealth", "Medicare"].map(ins => (
+                                    <div key={ins} className="col-6 col-sm-3 text-center border rounded p-2 d-flex align-items-center justify-content-center" style={{height: "80px"}}>
+                                        <span className="small fw-bold">{ins}</span>
+                                    </div>
+                                ))}
+                            </div>
+                            <button className="btn btn-outline-primary w-100 mt-4 rounded-pill" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
+                                View all 150+ plans
+                            </button>
+                        </section>
+
+                        <section ref={locationRef} className="py-5">
+                            <h5 className="fw-bold mb-4">Office Location</h5>
+                            <div className="card border-0 shadow-sm rounded-4 overflow-hidden">
+                                <div className="row g-0">
+                                    <div className="col-md-4 p-4 bg-primary text-white">
+                                        <h6 className="fw-bold">Direction</h6>
+                                        <p className="small opacity-90">{doctor.address}</p>
+                                        <hr className="bg-white" />
+                                        <h6 className="fw-bold">Business hours</h6>
+                                        <p className="small mb-0">Mon - Fri: 9:00 AM - 5:00 PM</p>
+                                    </div>
+                                    <div className="col-md-8" style={{ minHeight: "300px" }}>
+                                        <DoctorMap doctor={doctor} />
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
                     </div>
-                    <div className=" rounded-2 border" style={{ width: "67%", height: "300px" }}>
-                        <DoctorMap doctor={doctor} />
+
+                    {/* COLUMNA DERECHA: Calendario (Sticky en desktop) */}
+                    <div className="col-12 col-lg-5">
+                        <div className="sticky-md-top" style={{ top: "100px", zIndex: 10 }}>
+                            <div ref={calendarRef} className="card border-0 shadow-lg rounded-4 p-4">
+                                <h3 className="h5 fw-bold mb-1">Available Service Days</h3>
+                                <p className="text-muted small mb-4">Book through HiDoc for instant confirmation</p>
+                                <div className="d-flex justify-content-center bg-light rounded-4 p-2">
+                                    <DocttoCalendar doctorId={doctor.id} />
+                                </div>
+                                <div className="mt-4 text-center">
+                                    <p className="small text-muted"><i className="fa-solid fa-circle-info me-2"></i>Secure, fast, and free booking.</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <div className="mt-5 doctor-faqs" style={{ width: "80%" }}
-                    ref={faqsRef} >
-                    <h5> Frequently asked questions </h5>
-                    <p className="mt-3 fw-medium"> How soon can I make an appointment with Dr. Burton Waisbren? </p>
-                    <p className="faqs-p mt-2">Generally, Dr. {doctor.name} has appointments available on Zocdoc within 1 week. You can see Dr.
-                        {doctor.name} earliest availability on HiDoc and <span className="fw-medium"
-                            onClick={() => calendarRef.current?.scrollIntoView({ behavior: "smooth" })}
-                            style={{
-                                cursor: "pointer"
-                            }}
-                        > make an appointment online.</span></p>
-                    <p className="mt-3 fw-medium"> Is Dr. {doctor.name} accepting new patients? </p>
-                    <p className="faqs-p mt-2">Dr. {doctor.name} generally accepts new patients on HiDoc. You can see Dr.
-                        <span className="fw-medium"
-                            onClick={() => calendarRef.current?.scrollIntoView({ behavior: "smooth" })}
-                            style={{
-                                cursor: "pointer"
-                            }}
-                        >  {doctor.name} earliest availability</span> on HiDoc and schedule an appointment online.</p>
-                    <p className="mt-3 fw-medium">Can I make an appointment with Dr. {doctor.name} online? </p>
-                    <p className="faqs-p mt-2">Yes, you can
-                        <span className="fw-medium"
-                            onClick={() => calendarRef.current?.scrollIntoView({ behavior: "smooth" })}
-                            style={{
-                                cursor: "pointer"
-                            }}
-                        >  make an appointment online</span> with Dr. {doctor.name}  on HiDoc. It’s simple, secure, and free.</p>
-                    <div className="mx-5 p-5"></div>
                 </div>
             </div>
-        </>
+
+            {/* FAQ SECTION (Full width) */}
+            <div className="bg-light py-5 mt-5">
+                <div className="container">
+                    <div ref={faqsRef} className="max-w-800 mx-auto" style={{maxWidth: "800px"}}>
+                        <h5 className="fw-bold mb-4">Frequently Asked Questions</h5>
+                        <div className="accordion" id="faqAccordion">
+                            <div className="mb-4 border-bottom pb-3">
+                                <p className="fw-bold mb-2">How soon can I make an appointment with Dr. {doctor.name}?</p>
+                                <p className="text-secondary small">Generally available within 1 week. You can see the earliest availability and <span className="text-primary text-decoration-underline cursor-pointer" onClick={() => calendarRef.current?.scrollIntoView({ behavior: "smooth" })}>book online</span>.</p>
+                            </div>
+                            <div className="mb-4 border-bottom pb-3">
+                                <p className="fw-bold mb-2">Is Dr. {doctor.name} accepting new patients?</p>
+                                <p className="text-secondary small">Yes, new patients can book consultations via HiDoc directly.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <style>{`
+                .no-scrollbar::-webkit-scrollbar { display: none; }
+                .tab-item { transition: all 0.3s ease; position: relative; }
+                .active-tab { border-bottom: 3px solid #0d6efd; }
+                .doctor-main-img { transition: transform 0.3s ease; }
+                .doctor-main-img:hover { transform: scale(1.05); }
+                .cursor-pointer { cursor: pointer; }
+                @media (max-width: 768px) {
+                    .doctor-page-wrapper { padding-bottom: 80px; }
+                }
+            `}</style>
+        </div>
     )
 }
-
-
-
